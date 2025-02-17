@@ -1,11 +1,23 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddAuthorization();
+builder.Services.AddIdentityApiEndpoints<IdentityUser>()
+	.AddEntityFrameworkStores<ApplicationDbContext>();
+
 var app = builder.Build();
 
+app.MapIdentityApi<IdentityUser>();
 app.UseDefaultFiles();
 app.MapStaticAssets();
 
@@ -34,7 +46,21 @@ app.MapGet("/weatherforecast", () =>
         .ToArray();
     return forecast;
 })
-.WithName("GetWeatherForecast");
+.WithName("GetWeatherForecast")
+.RequireAuthorization();
+
+app.MapPost("/logout", async (SignInManager<IdentityUser> signInManager,
+	[FromBody] object empty) =>
+{
+	if (empty != null)
+	{
+		await signInManager.SignOutAsync();
+		return Results.Ok();
+	}
+	return Results.Unauthorized();
+})
+.WithOpenApi()
+.RequireAuthorization();
 
 app.MapFallbackToFile("/index.html");
 
