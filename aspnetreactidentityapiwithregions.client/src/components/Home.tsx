@@ -29,7 +29,7 @@ const Home = () => {
 
 	return (
 		<main>
-			<h1>Welcome to the {settings.region && <FlagIcon region={settings.region} />} Application</h1>
+			<h1>Welcome to the {settings.region && <FlagIcon region={settings.region} />} application</h1>
 			<Authenticated>
 				<p>You are logged in as {user?.email}</p>
 				<Weather />
