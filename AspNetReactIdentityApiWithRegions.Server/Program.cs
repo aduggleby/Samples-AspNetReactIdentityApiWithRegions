@@ -72,12 +72,21 @@ identityGroup.MapPost("/logout", async (SignInManager<IdentityUser> signInManage
 
 identityGroup.MapGet("/user", async (ClaimsPrincipal user) =>
 {
-	return Results.Json(new { 
+	return Results.Json(new
+	{
 		email = user.FindFirstValue(ClaimTypes.Email),
 	});
 })
 .WithOpenApi()
 .RequireAuthorization();
+
+apiGroup.MapGet("/appsettings", (IConfiguration config) =>
+{
+	var region = config["AppRegion"] ?? "Undefined";
+	var regions = config.GetSection("AvailableRegions").Get<Dictionary<string, string>>() ?? new Dictionary<string, string>();
+	var appSettings = new AppSettings(region, regions);
+	return Results.Ok(appSettings);
+});
 
 app.MapFallbackToFile("/index.html");
 
@@ -87,3 +96,6 @@ internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary
 {
 	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+// Define AppSettings record type
+internal record AppSettings(string Region, Dictionary<string, string> Regions);

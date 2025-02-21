@@ -1,6 +1,12 @@
 import axios from "axios";
 import AuthService from "./AuthService";
 
+// Define AppSettings type
+export interface AppSettings {
+  region: string;
+  regions: Record<string, string>;
+}
+
 const API_URL = "/api/";
 
 // Create an axios instance
@@ -93,6 +99,11 @@ const ApiService = {
     });
     return response.data;
   },
+  // Updated method with AppSettings type
+  getAppSettings: async (): Promise<AppSettings> => {
+    const response = await apiClient.get(`appsettings`);
+    return response.data;
+  }
 };
 
 export default ApiService;
