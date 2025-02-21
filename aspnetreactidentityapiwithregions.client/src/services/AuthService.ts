@@ -180,7 +180,7 @@ const AuthService = {
   recoverPassword: async (email: string): Promise<Result<any>> => {
     try {
       const response = await axios.post(`${IDENTITY_API_URL}recover-password`, {
-        email,
+        email: email ?? "", // Ensure email is a string
       });
       return { success: true, data: response.data };
     } catch (error) {
@@ -190,7 +190,7 @@ const AuthService = {
   verify2FA: async (code: string): Promise<Result<any>> => {
     try {
       const response = await axios.post(`${IDENTITY_API_URL}verify-2fa`, {
-        code,
+        code: code ?? "", // Ensure code is a string
       });
       return { success: true, data: response.data };
     } catch (error) {

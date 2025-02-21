@@ -30,7 +30,7 @@ const processQueue = (error: any = null) => {
 
 // Request interceptor to add the access token to headers
 apiClient.interceptors.request.use(
-  async (config) => {
+  async (config: InternalAxiosRequestConfig & { _skipAuthRetry?: boolean }) => {
     // Skip token handling for refresh token requests to avoid infinite loops
     if (config._skipAuthRetry) {
       return config;
@@ -49,7 +49,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _skipAuthRetry?: boolean };
 
     // Skip refresh token requests to avoid infinite loops
     if (originalRequest._skipAuthRetry) {
