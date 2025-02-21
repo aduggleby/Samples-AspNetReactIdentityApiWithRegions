@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
 import AuthService from "./AuthService";
 
 // Define AppSettings type
@@ -28,6 +28,12 @@ const processQueue = (error: any = null) => {
   failedQueue = [];
 };
 
+// Add _retry to the custom config type
+interface CustomRequestConfig extends InternalAxiosRequestConfig {
+  _skipAuthRetry?: boolean;
+  _retry?: boolean;
+}
+
 // Request interceptor to add the access token to headers
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig & { _skipAuthRetry?: boolean }) => {
@@ -49,7 +55,7 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _skipAuthRetry?: boolean };
+    const originalRequest = error.config as CustomRequestConfig;
 
     // Skip refresh token requests to avoid infinite loops
     if (originalRequest._skipAuthRetry) {
@@ -103,7 +109,7 @@ const ApiService = {
   getAppSettings: async (): Promise<AppSettings> => {
     const response = await apiClient.get(`appsettings`);
     return response.data;
-  }
+  },
 };
 
 export default ApiService;

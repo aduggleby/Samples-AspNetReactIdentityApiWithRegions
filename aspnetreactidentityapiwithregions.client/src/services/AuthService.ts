@@ -12,8 +12,9 @@ interface Result<T> {
 }
 
 const REFRESH_TOKEN_KEY = "refresh_token";
+const ACCESS_TOKEN_KEY = "access_token";
 
-let accessToken: string | null = null;
+let accessToken: string | null = localStorage.getItem(ACCESS_TOKEN_KEY);
 let refreshToken: string | null = localStorage.getItem(REFRESH_TOKEN_KEY);
 
 // Set up an Axios interceptor to add the Authorization header to all requests
@@ -51,13 +52,18 @@ const AuthService = {
         if (response.data.accessToken) {
           logger.debug("Received access token");
           accessToken = response.data.accessToken;
+          if (accessToken) {
+            localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+          }
         }
 
         if (response.data.refreshToken) {
           if (remember) {
             logger.debug("Storing refresh token (remember me enabled)");
             refreshToken = response.data.refreshToken;
-            localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+            if (refreshToken) {
+              localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+            }
           } else {
             // Keep refresh token in memory only
             logger.debug("Storing refresh token in memory only");
@@ -85,6 +91,9 @@ const AuthService = {
       );
       if (response.data && response.data.accessToken) {
         accessToken = response.data.accessToken;
+        if (accessToken) {
+          localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+        }
       }
       return { success: true, data: response.data };
     } catch (error) {
@@ -102,6 +111,7 @@ const AuthService = {
       accessToken = null;
       refreshToken = null;
       localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
       logger.info("Logout successful");
       return { success: true, data: response.data };
     } catch (error) {
@@ -132,12 +142,15 @@ const AuthService = {
         if (response.data.accessToken) {
           logger.debug("Received new access token");
           accessToken = response.data.accessToken;
+          if (accessToken) {
+            localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+          }
         }
 
         if (response.data.refreshToken) {
           logger.debug("Updating stored refresh token");
           refreshToken = response.data.refreshToken;
-          if (localStorage.getItem(REFRESH_TOKEN_KEY)) {
+          if (refreshToken) {
             localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
           }
         }
@@ -155,6 +168,7 @@ const AuthService = {
       accessToken = null;
       refreshToken = null;
       localStorage.removeItem(REFRESH_TOKEN_KEY);
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
       return false;
     }
   },
@@ -293,6 +307,18 @@ const AuthService = {
   },
   hasRefreshToken: (): boolean => {
     return !!refreshToken;
+  },
+  setTokens: (accessToken: string, refreshToken: string | null) => {
+    localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
+    if (refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    }
+  },
+  refreshTokens: async () => {
+    if (refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    }
+    await AuthService.refreshToken();
   },
 };
 
